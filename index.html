@@ -1011,7 +1011,7 @@ body::before {
 
 
     <!-- =================================================
-         书本
+         书本装饰
     ================================================== -->
 
     <div class="book"></div>
@@ -1023,74 +1023,70 @@ body::before {
 
     <div class="seal">
 
-        师<br>
-        恩
+        祝<br>
+        福
 
     </div>
 
 
     <!-- =================================================
-         操作提示
+         底部提示
     ================================================== -->
 
     <div
         class="hint"
         id="hint"
     >
-        ↑ 上滑 / 鼠标滚轮 · 下一页
+        📖 向上滑动 / 点击页面 · 继续阅读
     </div>
 
-
 </div>
-
 
 
 <script>
 
 /* =========================================================
    祝福语
-   直接修改这里即可
-========================================================= */
+  ========================================================= */
 
 const messages = [
 
     {
-        text: "感谢您的教诲与陪伴",
-        icon: "🌱"
+        text: "您用粉笔为我们指引方向，感谢您。",
+        icon: "🌟"
     },
 
     {
-        text: "您用知识，点亮我们的世界",
-        icon: "📖"
+        text: "您如春风化雨，润物无声，感谢有您",
+        icon: "🌤️"
     },
 
     {
-        text: "用耐心，守护每一次成长",
+        text: "您用讲台诠释爱，用粉笔演绎智慧",
         icon: "🌿"
     },
 
     {
-        text: "用一支粉笔，书写春秋",
-        icon: "✏️"
+        text: "三尺讲台展风采，一支粉笔描蓝图，桃李芬芳遍天下",
+        icon: "🎋"
     },
 
     {
-        text: "愿您的每一天，都有鲜花与掌声",
-        icon: "🌸"
+        text: "您的教诲似春风化雨，润物无声，感谢有您",
+        icon: "💚"
     },
 
     {
-        text: "愿岁月温柔以待，桃李满园",
-        icon: "🍃"
+        text: "岁月悠悠，衰草枯杨，您如青松翠柏长青；日月易逝，你的形象永驻心间",
+        icon: "🌲"
     },
 
     {
         text: "教师节快乐！",
-        icon: "❤️"
+        icon: "🎊"
     }
 
 ];
-
 
 /* =========================================================
    时间计时器
@@ -1098,17 +1094,17 @@ const messages = [
 
 function updateTimer() {
 
-    // 开始时间: 2026年9月1日 早上09:06
-    const startTime = new Date(2026, 8, 1, 9, 6, 0).getTime();
+    // 设定起始时间: 2026年8月1日 9:06
+    const startTime = new Date(2026, 7, 1, 9, 6, 0).getTime();
     const now = new Date().getTime();
     const diff = now - startTime;
 
     if (diff <= 0) {
-        document.getElementById('timerCount').textContent = '即将开始...';
+        document.getElementById('timerCount').textContent = '即将相识...';
         return;
     }
 
-    // 计算年、月、日、时、分、秒
+    // 计算年月日时分秒
     let remaining = diff;
 
     const seconds = 1000;
@@ -1132,7 +1128,7 @@ function updateTimer() {
     const months = Math.floor((totalDays % 365) / 30);
     const realDays = totalDays % 30;
 
-    // 构建显示文本
+    // 按照指定格式显示
     let timerText = '';
 
     if (years > 0) {
@@ -1144,12 +1140,12 @@ function updateTimer() {
     }
 
     if (realDays > 0 || months > 0 || years > 0) {
-        timerText += realDays + '日';
+        timerText += realDays + '天';
     }
 
     timerText += totalHours + '时';
     timerText += totalMinutes + '分';
-    timerText += totalSeconds + '秒啦';
+    timerText += totalSeconds + '秒';
 
     document.getElementById('timerCount').textContent = timerText;
 }
@@ -1160,7 +1156,7 @@ setInterval(updateTimer, 1000);
 
 
 /* =========================================================
-   页面逻辑
+   打开书籍交互
 ========================================================= */
 
 const cover = document.getElementById('cover');
@@ -1175,7 +1171,7 @@ const hint = document.getElementById('hint');
 let currentPage = 0;
 
 
-// =========== 打开书籍 ===========
+// ====================  打开书籍  ====================
 
 function openBook() {
 
@@ -1190,11 +1186,10 @@ function openBook() {
     }, 400);
 
     header.classList.add('hide');
-    timerContainer.classList.add('hide');
 }
 
 
-// =========== 显示祝福语 ===========
+// ====================  显示当前页面消息  ====================
 
 function showMessage() {
 
@@ -1217,7 +1212,7 @@ function showMessage() {
 }
 
 
-// =========== 翻页逻辑 ===========
+// ====================  下一页  ====================
 
 function nextPage() {
 
@@ -1241,12 +1236,12 @@ function nextPage() {
 }
 
 
-// =========== 事件监听 ===========
+// ====================  事件监听  ====================
 
-// 点击打开
+// 点击打开书籍
 cover.addEventListener('click', openBook);
 
-// 滚轮/触摸翻页
+// 鼠标滚轮/触摸滑动翻页
 document.addEventListener('wheel', (e) => {
 
     if (!pages.classList.contains('active')) {
@@ -1265,7 +1260,6 @@ document.addEventListener('wheel', (e) => {
 
 
 let touchStartY = 0;
-
 document.addEventListener('touchstart', (e) => {
 
     touchStartY = e.touches[0].clientY;
