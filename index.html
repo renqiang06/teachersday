@@ -466,20 +466,12 @@ body::before {
 
 
 /* =========================================================
-   页码
+   页码 (隐藏)
 ========================================================= */
 
 .page-info {
 
-    margin-top: 25px;
-
-    font-family: Arial, sans-serif;
-
-    font-size: 10px;
-
-    letter-spacing: 4px;
-
-    color: #a09272;
+    display: none;
 }
 
 
@@ -1000,7 +992,7 @@ body::before {
                 <div class="page-line"></div>
 
                 <span id="total">
-                    07
+                    06
                 </span>
 
             </div>
@@ -1011,281 +1003,261 @@ body::before {
 
 
     <!-- =================================================
-         书本装饰
+         底部
     ================================================== -->
 
-    <div class="book"></div>
-
-
-    <!-- =================================================
-         印章
-    ================================================== -->
+    <div class="hint" id="hint">
+        向上滑动继续阅读
+    </div>
 
     <div class="seal">
-
-        祝<br>
-        福
-
+        老师<br>感谢<br>有你
     </div>
 
-
-    <!-- =================================================
-         底部提示
-    ================================================== -->
-
-    <div
-        class="hint"
-        id="hint"
-    >
-        📖 向上滑动 / 点击页面 · 继续阅读
-    </div>
+    <div class="book"></div>
 
 </div>
 
 
 <script>
 
-/* =========================================================
-   祝福语
-  ========================================================= */
+// =========================================================
+// 消息数据
+// =========================================================
 
 const messages = [
-
-    {
-        text: "您用粉笔为我们指引方向，感谢您。",
-        icon: "🌟"
-    },
-
-    {
-        text: "您如春风化雨，润物无声，感谢有您",
-        icon: "🌤️"
-    },
-
-    {
-        text: "您用讲台诠释爱，用粉笔演绎智慧",
-        icon: "🌿"
-    },
-
-    {
-        text: "三尺讲台展风采，一支粉笔描蓝图，桃李芬芳遍天下",
-        icon: "🎋"
-    },
-
-    {
-        text: "您的教诲似春风化雨，润物无声，感谢有您",
-        icon: "💚"
-    },
-
-    {
-        text: "岁月悠悠，衰草枯杨，您如青松翠柏长青；日月易逝，你的形象永驻心间",
-        icon: "🌲"
-    },
-
-    {
-        text: "教师节快乐！",
-        icon: "🎊"
-    }
-
+    "亲爱的老师，\n感谢您一直以来的耐心教导",
+    "您用粉笔在黑板上书写知识，\n用心血浇灌我们成长的花朵",
+    "您不仅传授我们知识，\n更教会我们如何做人做事",
+    "感谢您在我迷茫时的指引，\n在我失落时的鼓励",
+    "您是知识的引路人，\n是心灵的灯塔",
+    "祝您教师节快乐，\n感谢有您！"
 ];
 
-/* =========================================================
-   时间计时器
-========================================================= */
 
-function updateTimer() {
+// =========================================================
+// 页面状态管理
+// =========================================================
 
-    // 设定起始时间: 2026年8月1日 9:06
-    const startTime = new Date(2026, 7, 1, 9, 6, 0).getTime();
-    const now = new Date().getTime();
-    const diff = now - startTime;
-
-    if (diff <= 0) {
-        document.getElementById('timerCount').textContent = '即将相识...';
-        return;
-    }
-
-    // 计算年月日时分秒
-    let remaining = diff;
-
-    const seconds = 1000;
-    const minutes = seconds * 60;
-    const hours = minutes * 60;
-    const days = hours * 24;
-
-    let totalDays = Math.floor(remaining / days);
-    remaining = remaining % days;
-
-    let totalHours = Math.floor(remaining / hours);
-    remaining = remaining % hours;
-
-    let totalMinutes = Math.floor(remaining / minutes);
-    remaining = remaining % minutes;
-
-    let totalSeconds = Math.floor(remaining / seconds);
-
-    // 计算年月日
-    const years = Math.floor(totalDays / 365);
-    const months = Math.floor((totalDays % 365) / 30);
-    const realDays = totalDays % 30;
-
-    // 按照指定格式显示
-    let timerText = '';
-
-    if (years > 0) {
-        timerText += years + '年';
-    }
-
-    if (months > 0 || years > 0) {
-        timerText += months + '月';
-    }
-
-    if (realDays > 0 || months > 0 || years > 0) {
-        timerText += realDays + '天';
-    }
-
-    timerText += totalHours + '时';
-    timerText += totalMinutes + '分';
-    timerText += totalSeconds + '秒';
-
-    document.getElementById('timerCount').textContent = timerText;
-}
-
-// 初始化计时器
-updateTimer();
-setInterval(updateTimer, 1000);
+const state = {
+    currentPage: -1,
+    isOpenBook: false,
+    lastTime: 0,
+    isAnimating: false
+};
 
 
-/* =========================================================
-   打开书籍交互
-========================================================= */
+// =========================================================
+// DOM 元素缓存
+// =========================================================
 
-const cover = document.getElementById('cover');
-const pages = document.getElementById('pages');
-const message = document.getElementById('message');
-const ornament = document.getElementById('ornament');
-const finalSub = document.getElementById('finalSub');
-const header = document.getElementById('header');
-const timerContainer = document.getElementById('timerContainer');
-const hint = document.getElementById('hint');
+const elements = {
+    cover: document.getElementById('cover'),
+    pages: document.getElementById('pages'),
+    message: document.getElementById('message'),
+    header: document.getElementById('header'),
+    timerContainer: document.getElementById('timerContainer'),
+    finalSub: document.getElementById('finalSub'),
+    hint: document.getElementById('hint'),
+    ornament: document.getElementById('ornament')
+};
 
-let currentPage = 0;
 
-
-// ====================  打开书籍  ====================
+// =========================================================
+// 打开书籍
+// =========================================================
 
 function openBook() {
-
-    cover.classList.add('out');
-
-    setTimeout(() => {
-
-        pages.classList.add('active');
-
-        showMessage();
-
-    }, 400);
-
-    header.classList.add('hide');
+    if (state.isOpenBook) return;
+    
+    state.isOpenBook = true;
+    state.currentPage = 0;
+    
+    elements.cover.classList.add('out');
+    elements.pages.classList.add('active');
+    elements.header.classList.add('hide');
+    elements.timerContainer.classList.add('hide');
+    
+    showMessage(0);
 }
 
 
-// ====================  显示当前页面消息  ====================
+// =========================================================
+// 关闭书籍
+// =========================================================
 
-function showMessage() {
+function closeBook() {
+    if (!state.isOpenBook) return;
+    
+    state.isOpenBook = false;
+    state.currentPage = -1;
+    
+    elements.cover.classList.remove('out');
+    elements.pages.classList.remove('active');
+    elements.header.classList.remove('hide');
+    elements.timerContainer.classList.remove('hide');
+    
+    hideMessage();
+}
 
-    if (currentPage >= messages.length) {
 
-        return;
-    }
+// =========================================================
+// 显示消息
+// =========================================================
 
-    const current = messages[currentPage];
-
-    message.textContent = current.text;
-    ornament.textContent = current.icon;
-
-    message.classList.add('show');
-
-    if (currentPage === messages.length - 1) {
-
-        finalSub.classList.add('show');
+function showMessage(pageIndex) {
+    if (pageIndex < 0 || pageIndex >= messages.length) return;
+    
+    state.currentPage = pageIndex;
+    elements.message.textContent = messages[pageIndex];
+    
+    // 触发重排以重新启动动画
+    elements.message.offsetHeight;
+    
+    elements.message.classList.add('show');
+    
+    // 最后一页显示副标题
+    if (pageIndex === messages.length - 1) {
+        elements.message.classList.add('final');
+        setTimeout(() => {
+            elements.finalSub.classList.add('show');
+        }, 200);
+    } else {
+        elements.message.classList.remove('final');
+        elements.finalSub.classList.remove('show');
     }
 }
 
 
-// ====================  下一页  ====================
+// =========================================================
+// 隐藏消息
+// =========================================================
 
-function nextPage() {
+function hideMessage() {
+    elements.message.classList.remove('show');
+    elements.message.classList.remove('final');
+    elements.finalSub.classList.remove('show');
+}
 
-    if (currentPage >= messages.length - 1) {
 
+// =========================================================
+// 切换页面
+// =========================================================
+
+function goToNextPage() {
+    if (!state.isOpenBook) return;
+    if (state.isAnimating) return;
+    if (state.currentPage >= messages.length - 1) return;
+    
+    state.isAnimating = true;
+    hideMessage();
+    
+    setTimeout(() => {
+        showMessage(state.currentPage + 1);
+        state.isAnimating = false;
+    }, 300);
+}
+
+function goToPreviousPage() {
+    if (!state.isOpenBook) return;
+    if (state.isAnimating) return;
+    if (state.currentPage <= 0) {
+        closeBook();
         return;
     }
-
-    message.classList.remove('show');
-
+    
+    state.isAnimating = true;
+    hideMessage();
+    
     setTimeout(() => {
-
-        currentPage++;
-
-        showMessage();
-
-        document.getElementById('current').textContent =
-            String(currentPage + 1).padStart(2, '0');
-
+        showMessage(state.currentPage - 1);
+        state.isAnimating = false;
     }, 300);
 }
 
 
-// ====================  事件监听  ====================
+// =========================================================
+// 全页面滚动监听
+// =========================================================
 
-// 点击打开书籍
-cover.addEventListener('click', openBook);
+let touchStartY = 0;
 
-// 鼠标滚轮/触摸滑动翻页
-document.addEventListener('wheel', (e) => {
-
-    if (!pages.classList.contains('active')) {
-
-        return;
+document.addEventListener('wheel', (event) => {
+    event.preventDefault();
+    
+    const now = Date.now();
+    if (now - state.lastTime < 500) return;
+    
+    if (event.deltaY > 0) {
+        goToNextPage();
+    } else {
+        goToPreviousPage();
     }
+    
+    state.lastTime = now;
+}, { passive: false });
 
-    e.preventDefault();
+document.addEventListener('touchstart', (event) => {
+    touchStartY = event.touches[0].clientY;
+}, { passive: false });
 
-    if (e.deltaY > 0) {
+document.addEventListener('touchmove', (event) => {
+    event.preventDefault();
+}, { passive: false });
 
-        nextPage();
+document.addEventListener('touchend', (event) => {
+    const touchEndY = event.changedTouches[0].clientY;
+    const deltaY = touchStartY - touchEndY;
+    const now = Date.now();
+    
+    if (Math.abs(deltaY) < 30) return;
+    if (now - state.lastTime < 500) return;
+    
+    if (deltaY > 0) {
+        goToNextPage();
+    } else {
+        goToPreviousPage();
     }
-
+    
+    state.lastTime = now;
 }, { passive: false });
 
 
-let touchStartY = 0;
-document.addEventListener('touchstart', (e) => {
+// =========================================================
+// 打开书籍交互
+// =========================================================
 
-    touchStartY = e.touches[0].clientY;
+elements.cover.addEventListener('click', openBook);
 
-}, { passive: true });
-
-document.addEventListener('touchmove', (e) => {
-
-    if (!pages.classList.contains('active')) {
-
-        return;
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowUp' && !state.isOpenBook) {
+        openBook();
     }
+});
 
-    const touchEndY = e.touches[0].clientY;
 
-    if (touchStartY - touchEndY > 30) {
+// =========================================================
+// 时间计时器
+// =========================================================
 
-        nextPage();
+function updateTimer() {
+    const timerCount = document.getElementById('timerCount');
+    const startDate = new Date('2026-09-01T09:06:00');
+    const now = new Date();
+    const diff = now - startDate;
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    
+    timerCount.textContent = `${days}天 ${hours}小时 ${minutes}分钟 ${seconds}秒`;
+}
 
-        touchStartY = touchEndY;
-    }
-
-}, { passive: true });
+updateTimer();
+setInterval(updateTimer, 1000);
 
 </script>
 
 </body>
-
 </html>
