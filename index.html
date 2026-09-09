@@ -940,7 +940,7 @@ body::before {
         <div class="cover-line"></div>
 
         <div class="cover-subtitle">
-            谢谢您，曾照亮我前行的路
+            谢谢您，曾照亮我前���的路
         </div>
 
         <div class="cover-line"></div>
@@ -1041,7 +1041,6 @@ const messages = [
 
 const state = {
     currentPage: -1,
-    isOpenBook: false,
     lastTime: 0,
     isAnimating: false
 };
@@ -1061,44 +1060,6 @@ const elements = {
     hint: document.getElementById('hint'),
     ornament: document.getElementById('ornament')
 };
-
-
-// =========================================================
-// 打开书籍
-// =========================================================
-
-function openBook() {
-    if (state.isOpenBook) return;
-    
-    state.isOpenBook = true;
-    state.currentPage = 0;
-    
-    elements.cover.classList.add('out');
-    elements.pages.classList.add('active');
-    elements.header.classList.add('hide');
-    elements.timerContainer.classList.add('hide');
-    
-    showMessage(0);
-}
-
-
-// =========================================================
-// 关闭书籍
-// =========================================================
-
-function closeBook() {
-    if (!state.isOpenBook) return;
-    
-    state.isOpenBook = false;
-    state.currentPage = -1;
-    
-    elements.cover.classList.remove('out');
-    elements.pages.classList.remove('active');
-    elements.header.classList.remove('hide');
-    elements.timerContainer.classList.remove('hide');
-    
-    hideMessage();
-}
 
 
 // =========================================================
@@ -1141,12 +1102,55 @@ function hideMessage() {
 
 
 // =========================================================
-// 切换页面
+// 打开书籍（第一页）
+// =========================================================
+
+function openBook() {
+    if (state.currentPage >= 0) return;
+    
+    state.currentPage = 0;
+    
+    elements.cover.classList.add('out');
+    elements.pages.classList.add('active');
+    elements.header.classList.add('hide');
+    elements.timerContainer.classList.add('hide');
+    
+    showMessage(0);
+}
+
+
+// =========================================================
+// 关闭书籍（回到封面）
+// =========================================================
+
+function closeBook() {
+    if (state.currentPage < 0) return;
+    
+    state.currentPage = -1;
+    
+    elements.cover.classList.remove('out');
+    elements.pages.classList.remove('active');
+    elements.header.classList.remove('hide');
+    elements.timerContainer.classList.remove('hide');
+    
+    hideMessage();
+}
+
+
+// =========================================================
+// 切换到下一页
 // =========================================================
 
 function goToNextPage() {
-    if (!state.isOpenBook) return;
     if (state.isAnimating) return;
+    
+    // 未打开书籍，打开第一页
+    if (state.currentPage < 0) {
+        openBook();
+        return;
+    }
+    
+    // 已在最后一页，不往后翻
     if (state.currentPage >= messages.length - 1) return;
     
     state.isAnimating = true;
@@ -1158,13 +1162,28 @@ function goToNextPage() {
     }, 300);
 }
 
+
+// =========================================================
+// 切换到上一页
+// =========================================================
+
 function goToPreviousPage() {
-    if (!state.isOpenBook) return;
     if (state.isAnimating) return;
-    if (state.currentPage <= 0) {
-        closeBook();
+    
+    // 在第一页，返回封面
+    if (state.currentPage === 0) {
+        state.isAnimating = true;
+        hideMessage();
+        
+        setTimeout(() => {
+            closeBook();
+            state.isAnimating = false;
+        }, 300);
         return;
     }
+    
+    // 未打开书籍，不处理
+    if (state.currentPage < 0) return;
     
     state.isAnimating = true;
     hideMessage();
@@ -1177,7 +1196,7 @@ function goToPreviousPage() {
 
 
 // =========================================================
-// 全页面滚动监听
+// 全页面滚动监听（鼠标滚轮）
 // =========================================================
 
 let touchStartY = 0;
@@ -1189,13 +1208,20 @@ document.addEventListener('wheel', (event) => {
     if (now - state.lastTime < 500) return;
     
     if (event.deltaY > 0) {
+        // 向下滚，翻下一页
         goToNextPage();
     } else {
+        // 向上滚，翻上一页
         goToPreviousPage();
     }
     
     state.lastTime = now;
 }, { passive: false });
+
+
+// =========================================================
+// 触摸滑动监听
+// =========================================================
 
 document.addEventListener('touchstart', (event) => {
     touchStartY = event.touches[0].clientY;
@@ -1214,8 +1240,10 @@ document.addEventListener('touchend', (event) => {
     if (now - state.lastTime < 500) return;
     
     if (deltaY > 0) {
+        // 上滑，翻下一页
         goToNextPage();
     } else {
+        // 下滑，翻上一页
         goToPreviousPage();
     }
     
@@ -1224,13 +1252,25 @@ document.addEventListener('touchend', (event) => {
 
 
 // =========================================================
-// 打开书籍交互
+// 点击封面打开书籍
 // =========================================================
 
 elements.cover.addEventListener('click', openBook);
 
+
+// =========================================================
+// 点击内容区域翻到下一页
+// =========================================================
+
+elements.pages.addEventListener('click', goToNextPage);
+
+
+// =========================================================
+// 键盘支持（向上箭头打开书籍）
+// =========================================================
+
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowUp' && !state.isOpenBook) {
+    if (event.key === 'ArrowUp' && state.currentPage < 0) {
         openBook();
     }
 });
